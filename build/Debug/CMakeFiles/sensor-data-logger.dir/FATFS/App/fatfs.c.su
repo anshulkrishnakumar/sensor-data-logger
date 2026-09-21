@@ -1,0 +1,2 @@
+/home/praytoa/STM32/sensor-data-logger/FATFS/App/fatfs.c:30:6:MX_FATFS_Init	8	static
+/home/praytoa/STM32/sensor-data-logger/FATFS/App/fatfs.c:45:7:get_fattime	4	static
