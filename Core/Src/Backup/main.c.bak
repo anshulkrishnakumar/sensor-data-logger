@@ -102,19 +102,30 @@ int main(void)
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
   char msg[50];
-  const char start_msg[] = "I2C scan starting...\r\n";
-  const char end_msg[] = "I2C scan complete!\r\n";
 
-  HAL_UART_Transmit(&huart2, (uint8_t *)start_msg, sizeof(start_msg) - 1, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)"I2C scan starting...\r\n",
+                    22,
+                    HAL_MAX_DELAY);
 
-  for (uint8_t addr = 1; addr < 128; addr++) {
-    if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 2, 10) == HAL_OK) {
-      snprintf(msg, sizeof(msg), "Address: 0x%02X\r\n", addr);
-      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
-    }
+  for (uint8_t addr = 1; addr < 128; addr++)
+  {
+      if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 2, 10) == HAL_OK)
+      {
+          snprintf(msg, sizeof(msg),
+                  "I2C device found: 0x%02X\r\n", addr);
+
+          HAL_UART_Transmit(&huart2,
+                            (uint8_t *)msg,
+                            strlen(msg),
+                            HAL_MAX_DELAY);
+      }
   }
 
-  HAL_UART_Transmit(&huart2, (uint8_t *)end_msg, sizeof(end_msg) - 1, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)"I2C scan complete\r\n",
+                    21,
+                    HAL_MAX_DELAY);
 
   /* USER CODE END 2 */
 
