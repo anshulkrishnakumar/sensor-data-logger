@@ -40,6 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define BME280_ADDR 0x76
 
 /* USER CODE END PD */
 
@@ -115,6 +116,17 @@ int main(void)
   }
 
   HAL_UART_Transmit(&huart2, (uint8_t *)end_msg, sizeof(end_msg) - 1, HAL_MAX_DELAY);
+
+  uint8_t chip_id = 0;
+
+  HAL_I2C_Mem_Read(&hi2c1, BME280_ADDR << 1, 0xD0, I2C_MEMADD_SIZE_8BIT, &chip_id, 1, HAL_MAX_DELAY);
+  
+  char chip_msg[50];
+
+  // BME280 chip id is 0x60
+  snprintf(chip_msg, sizeof(chip_msg), "BME280 Chip ID: 0x%02X\r\n", chip_id);
+  HAL_UART_Transmit(&huart2, (uint8_t *)chip_msg, strlen(chip_msg), HAL_MAX_DELAY);
+
 
   /* USER CODE END 2 */
 
