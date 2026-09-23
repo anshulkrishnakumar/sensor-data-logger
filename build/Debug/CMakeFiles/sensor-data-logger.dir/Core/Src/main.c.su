@@ -1,3 +1,0 @@
-/home/praytoa/STM32/sensor-data-logger/Core/Src/main.c:73:5:main	120	static
-/home/praytoa/STM32/sensor-data-logger/Core/Src/main.c:145:6:SystemClock_Config	88	static
-/home/praytoa/STM32/sensor-data-logger/Core/Src/main.c:196:6:Error_Handler	4	static
