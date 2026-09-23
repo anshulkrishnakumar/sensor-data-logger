@@ -10,6 +10,24 @@
 #define BME280_REG_CONFIG       0xF5 // data output rate
 #define BME280_REG_DATA         0xF7 // storing data
 
-HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2sc);
+// temperature register stores 20 bits
+#define BME280_REG_TEMP_MSB     0xFA // MSB of temperature value, 8 bits
+#define BME280_REG_TEMP_LSB     0xFB // middle bits of temperature value, 8 bits
+#define BME280_REG_TEMP_XLSB    0xFC // LS bits of temperature value, 4 bits
+
+// registers containing temperature calibration coefficients to convert raw temperature bits to Celsius
+#define BME280_REG_DIG_T1       0x88
+#define BME280_REG_DIG_T2       0x8A
+#define BME280_REG_DIG_T3       0x8C
+
+typedef struct {
+    uint16_t dig_T1; // baseline reference value - this needs to be positive
+    int16_t dig_T2; // T2 and T3 are correction/slope multipliers - they can be negative
+    int16_t dig_T3;
+} BME280_Calibration;
+
+
+HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2sc, BME280_Calibration *calib);
+uint32_t BME280_ReadRawTemperature(I2C_HandleTypeDef *hi2c);
 
 #endif

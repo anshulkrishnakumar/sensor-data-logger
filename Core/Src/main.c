@@ -117,7 +117,9 @@ int main(void)
 
   HAL_UART_Transmit(&huart2, (uint8_t *)end_msg, sizeof(end_msg) - 1, HAL_MAX_DELAY);
 
-  if (BME280_Init(&hi2c1) == HAL_OK) {
+  BME280_Calibration calib;
+
+  if (BME280_Init(&hi2c1, &calib) == HAL_OK) {
     char init_msg[] = "BME280 initialized!";
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   } else {
