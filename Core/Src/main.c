@@ -102,33 +102,16 @@ int main(void)
   MX_USART2_UART_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-  char msg[50];
-  const char start_msg[] = "I2C scan starting...\r\n";
-  const char end_msg[] = "I2C scan complete!\r\n";
-
-  HAL_UART_Transmit(&huart2, (uint8_t *)start_msg, sizeof(start_msg) - 1, HAL_MAX_DELAY);
-
-  for (uint8_t addr = 1; addr < 128; addr++) {
-    if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 2, 10) == HAL_OK) {
-      snprintf(msg, sizeof(msg), "Address: 0x%02X\r\n", addr);
-      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
-    }
-  }
-
-  HAL_UART_Transmit(&huart2, (uint8_t *)end_msg, sizeof(end_msg) - 1, HAL_MAX_DELAY);
-
   BME280_Calibration calib;
 
   if (BME280_Init(&hi2c1, &calib) == HAL_OK) {
-    char init_msg[] = "BME280 initialized!";
+    char init_msg[] = "BME280 initialized!\r\n";
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   } else {
-    char init_msg[] = "BME280 initialization failed!";
+    char init_msg[] = "BME280 initialization failed!\r\n";
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   }
 
-
-  // print temperature + pressure readings
   float temperature = BME280_ReadTemperature(&hi2c1, &calib);
   float pressure = BME280_ReadPressure(&hi2c1, &calib);
 

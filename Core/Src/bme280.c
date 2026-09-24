@@ -7,9 +7,7 @@
 HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib) {
     uint8_t chip_id = 0;
 
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Read(hi2c,
-                                                BME280_ADDR << 1,
-                                                0xD0,
+    HAL_StatusTypeDef status = HAL_I2C_Mem_Read(hi2c, BME280_ADDR << 1, 0xD0,
                                                 I2C_MEMADD_SIZE_8BIT,
                                                 &chip_id,
                                                 1,
@@ -59,35 +57,6 @@ HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib
     calib->dig_P8 = (uint16_t)(press_calib_data[15] << 8 | press_calib_data[14]);
     calib->dig_P9 = (uint16_t)(press_calib_data[17] << 8 | press_calib_data[16]);
 
-    char press_msg[50];
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P1: %d\r\n", calib->dig_P1);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P2: %d\r\n", calib->dig_P2);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P3: %d\r\n", calib->dig_P3);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P4: %d\r\n", calib->dig_P4);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P5: %d\r\n", calib->dig_P5);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P6: %d\r\n", calib->dig_P6);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P7: %d\r\n", calib->dig_P7);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P8: %d\r\n", calib->dig_P8);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
-    snprintf(press_msg, sizeof(press_msg), "dig_P9: %d\r\n", calib->dig_P9);
-    HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
-
     // send configs through uart
     uint8_t ctrl_hum = 0x01; // humidity oversampling x1
     uint8_t ctrl_meas = 0x27; // temperature x1, pressure x1, sensor normal mode
@@ -106,40 +75,7 @@ HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib
                       I2C_MEMADD_SIZE_8BIT,
                       &ctrl_meas,
                       1,
-                      HAL_MAX_DELAY);    
-
-    uint8_t reg_value;
-    char msg[50];
-
-    HAL_I2C_Mem_Read(hi2c,
-                    BME280_ADDR << 1,
-                    BME280_REG_CTRL_HUM,
-                    I2C_MEMADD_SIZE_8BIT,
-                    &reg_value,
-                    1,
-                    HAL_MAX_DELAY);
-
-    snprintf(msg, sizeof(msg), "CTRL_HUM: 0x%02X\r\n", reg_value);
-    HAL_UART_Transmit(&huart2,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
-
-    HAL_I2C_Mem_Read(hi2c,
-                    BME280_ADDR << 1,
-                    BME280_REG_CTRL_MEAS,
-                    I2C_MEMADD_SIZE_8BIT,
-                    &reg_value,
-                    1,
-                    HAL_MAX_DELAY);
-
-    snprintf(msg, sizeof(msg), "CTRL_MEAS: 0x%02X\r\n", reg_value);
-    HAL_UART_Transmit(&huart2,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
-    
-    
+                      HAL_MAX_DELAY);
     return HAL_OK;
 }
 
@@ -167,7 +103,6 @@ float BME280_ReadTemperature(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib)
 
     return temperature;
 }
-
 // for now, temperature must be read before pressure because t_fine's value depends on initial temperature values 
 
 float BME280_ReadPressure(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib) {
@@ -184,29 +119,6 @@ float BME280_ReadPressure(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib) {
     uint32_t raw_press = ((uint32_t)data[0] << 12) |
                          ((uint32_t)data[1] << 4) |
                          ((uint32_t)data[2] >> 4);
-
-
-    char msg[50];
-
-    snprintf(msg, sizeof(msg),
-            "Raw pressure: %ld\r\n",
-            raw_press);
-
-    HAL_UART_Transmit(&huart2,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
-
-    snprintf(msg, sizeof(msg),
-            "t_fine: %ld\r\n",
-            calib->t_fine);
-
-    HAL_UART_Transmit(&huart2,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
-
-    
 
     // pascal calculation as per BME280 datasheet
     float var1 = ((float)calib->t_fine / 2.0f) - 64000.0f;

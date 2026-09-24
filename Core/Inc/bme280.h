@@ -3,7 +3,7 @@
 
 #include "main.h"
 
-#define BME280_ADDR 0x76
+#define BME280_ADDR 0x76 // this address was determined by looping through address values to see if a device I2C connection was established
 
 #define BME280_REG_CTRL_HUM     0xF2 // humidity oversampling configurations
 #define BME280_REG_CTRL_MEAS    0xF4 // temperature + presssure oversampling configurations
