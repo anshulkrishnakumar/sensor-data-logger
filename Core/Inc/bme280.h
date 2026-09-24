@@ -51,7 +51,7 @@ typedef struct {
     int16_t dig_P8;
     int16_t dig_P9;
 
-    int32_t t_fine; // temperature correction value that is used for pressure calculation
+    float t_fine; // temperature correction value that is used for pressure calculation
 } BME280_Calibration;
 
 

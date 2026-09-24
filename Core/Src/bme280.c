@@ -162,10 +162,13 @@ float BME280_ReadTemperature(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib)
     float var1 = (((float)raw_temp / 16384.0f) - ((float)calib->dig_T1 / 1024.0f)) * (float)calib->dig_T2;
     float var2 = (((float)raw_temp / 131072.0f) - ((float)calib->dig_T1 / 8192.0f));
     var2 = var2 * var2 * (float)calib->dig_T3;
-    float temperature = (var1 + var2) / 5120.0f;
+    calib->t_fine = var1 + var2;
+    float temperature = calib->t_fine / 5120.0f;
 
     return temperature;
 }
+
+// for now, temperature must be read before pressure because t_fine's value depends on initial temperature values 
 
 float BME280_ReadPressure(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib) {
     uint8_t data[3];
@@ -181,6 +184,29 @@ float BME280_ReadPressure(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib) {
     uint32_t raw_press = ((uint32_t)data[0] << 12) |
                          ((uint32_t)data[1] << 4) |
                          ((uint32_t)data[2] >> 4);
+
+
+    char msg[50];
+
+    snprintf(msg, sizeof(msg),
+            "Raw pressure: %ld\r\n",
+            raw_press);
+
+    HAL_UART_Transmit(&huart2,
+                    (uint8_t *)msg,
+                    strlen(msg),
+                    HAL_MAX_DELAY);
+
+    snprintf(msg, sizeof(msg),
+            "t_fine: %ld\r\n",
+            calib->t_fine);
+
+    HAL_UART_Transmit(&huart2,
+                    (uint8_t *)msg,
+                    strlen(msg),
+                    HAL_MAX_DELAY);
+
+    
 
     // pascal calculation as per BME280 datasheet
     float var1 = ((float)calib->t_fine / 2.0f) - 64000.0f;
