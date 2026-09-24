@@ -93,7 +93,7 @@ HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib
     return HAL_OK;
 }
 
-uint32_t BME280_ReadRawTemperature(I2C_HandleTypeDef *hi2c) {
+float BME280_ReadTemperature(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib) {
     uint8_t data[3];
 
     HAL_I2C_Mem_Read(hi2c,
@@ -107,6 +107,12 @@ uint32_t BME280_ReadRawTemperature(I2C_HandleTypeDef *hi2c) {
     uint32_t raw_temp = ((uint32_t)data[0] << 12) | // shift MSB 12 bits to the left
                         ((uint32_t)data[1] << 4) | // shift LSB 4 bits to the left
                         ((uint32_t)data[2] >> 4); // shift XLSB 4 bits to the right
+    
+    // celsius calculation as per BME280 datasheet
+    float var1 = (((float)raw_temp / 16384.0f) - ((float)calib->dig_T1 / 1024.0f)) * (float)calib->dig_T2;
+    float var2 = (((float)raw_temp / 131072.0f) - ((float)calib->dig_T1 / 8192.0f));
+    var2 = var2 * var2 * (float)calib->dig_T3;
+    float temperature = (var1 + var2) / 5120.0f;
 
-    return raw_temp;
+    return temperature;
 }

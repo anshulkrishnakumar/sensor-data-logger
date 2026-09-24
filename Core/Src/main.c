@@ -127,6 +127,11 @@ int main(void)
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   }
 
+  float temperature = BME280_ReadTemperature(&hi2c1, &calib);
+  char temp_msg[50];
+  snprintf(temp_msg, sizeof(temp_msg), "Temperature: %.2f C\r\n", temperature);
+  HAL_UART_Transmit(&huart2, (uint8_t *)temp_msg, strlen(temp_msg), HAL_MAX_DELAY);
+
   
   /* USER CODE END 2 */
 

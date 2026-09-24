@@ -28,6 +28,6 @@ typedef struct {
 
 
 HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2sc, BME280_Calibration *calib);
-uint32_t BME280_ReadRawTemperature(I2C_HandleTypeDef *hi2c);
+float BME280_ReadTemperature(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib);
 
 #endif
