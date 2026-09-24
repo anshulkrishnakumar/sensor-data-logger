@@ -127,11 +127,18 @@ int main(void)
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   }
 
+
+  // print temperature + pressure readings
   float temperature = BME280_ReadTemperature(&hi2c1, &calib);
+  float pressure = BME280_ReadPressure(&hi2c1, &calib);
+
   char temp_msg[50];
   snprintf(temp_msg, sizeof(temp_msg), "Temperature: %.2f C\r\n", temperature);
   HAL_UART_Transmit(&huart2, (uint8_t *)temp_msg, strlen(temp_msg), HAL_MAX_DELAY);
 
+  char press_msg[50];
+  snprintf(press_msg, sizeof(press_msg), "Pressure: %.2f Pa\r\n", pressure);
+  HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
   
   /* USER CODE END 2 */
 
