@@ -15,6 +15,10 @@
 #define BME280_REG_TEMP_LSB     0xFB // middle bits of temperature value, 8 bits
 #define BME280_REG_TEMP_XLSB    0xFC // LS bits of temperature value, 4 bits
 
+// humidity value is 16 bits
+#define BME280_REG_HUM_MSB  0xFD // 8 bits
+#define BME280_REG_HUM_LSB  0xFE // 8 bits
+
 // pressure value is 20 bits
 #define BME280_REG_PRESS_MSB  0xF7 // 8 bits
 #define BME280_REG_PRESS_LSB  0xF8 // 8 bits
@@ -24,6 +28,14 @@
 #define BME280_REG_DIG_T1       0x88
 #define BME280_REG_DIG_T2       0x8A
 #define BME280_REG_DIG_T3       0x8C
+
+// registers containing humidity calibration coefficients
+#define BME280_REG_DIG_H1  0xA1
+#define BME280_REG_DIG_H2  0xE1
+#define BME280_REG_DIG_H3  0xE3
+#define BME280_REG_DIG_H4  0xE4
+#define BME280_REG_DIG_H5  0xE5
+#define BME280_REG_DIG_H6  0xE7
 
 // registers containing pressure calibration coefficients
 #define BME280_REG_DIG_P1  0x8E
@@ -37,9 +49,16 @@
 #define BME280_REG_DIG_P9  0x9E
 
 typedef struct {
-    uint16_t dig_T1; // baseline reference value - this needs to be positive
-    int16_t dig_T2; // T2 and T3 are correction/slope multipliers - they can be negative
+    uint16_t dig_T1;
+    int16_t dig_T2; 
     int16_t dig_T3;
+
+    uint8_t dig_H1;
+    int16_t dig_H2;
+    uint8_t dig_H3;
+    int16_t dig_H4;
+    int16_t dig_H5;
+    int8_t dig_H6;
 
     uint16_t dig_P1;
     int16_t dig_P2;
@@ -51,12 +70,13 @@ typedef struct {
     int16_t dig_P8;
     int16_t dig_P9;
 
-    float t_fine; // temperature correction value that is used for pressure calculation
+    int32_t t_fine; // temperature correction value that is used for pressure calculation
 } BME280_Calibration;
 
 
 HAL_StatusTypeDef BME280_Init(I2C_HandleTypeDef *hi2sc, BME280_Calibration *calib);
 float BME280_ReadTemperature(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib);
 float BME280_ReadPressure(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib);
+float BME280_ReadHumidity(I2C_HandleTypeDef *hi2c, BME280_Calibration *calib);
 
 #endif

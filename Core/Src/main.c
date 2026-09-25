@@ -114,6 +114,7 @@ int main(void)
 
   float temperature = BME280_ReadTemperature(&hi2c1, &calib);
   float pressure = BME280_ReadPressure(&hi2c1, &calib);
+  float humidity = BME280_ReadHumidity(&hi2c1, &calib);
 
   char temp_msg[50];
   snprintf(temp_msg, sizeof(temp_msg), "Temperature: %.2f C\r\n", temperature);
@@ -123,6 +124,10 @@ int main(void)
   snprintf(press_msg, sizeof(press_msg), "Pressure: %.2f Pa\r\n", pressure);
   HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
   
+  char hum_msg[50];
+  snprintf(hum_msg, sizeof(hum_msg), "Humidity: %.2f %%\r\n", humidity);
+  HAL_UART_Transmit(&huart2, (uint8_t *)hum_msg, strlen(hum_msg), HAL_MAX_DELAY);
+
   /* USER CODE END 2 */
 
   /* Initialize leds */
