@@ -104,6 +104,145 @@ int main(void)
   /* USER CODE BEGIN 2 */
   BME280_Calibration calib;
 
+
+  char msg[50];
+
+  const char start_msg[] = "I2C scan starting...\r\n";
+  HAL_UART_Transmit(&huart2, (uint8_t *)start_msg,
+                    strlen(start_msg), HAL_MAX_DELAY);
+
+  for (uint8_t addr = 1; addr < 128; addr++) {
+      if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 2, 10) == HAL_OK) {
+          snprintf(msg, sizeof(msg),
+                  "Address: 0x%02X\r\n", addr);
+
+          HAL_UART_Transmit(&huart2, (uint8_t *)msg,
+                            strlen(msg), HAL_MAX_DELAY);
+      }
+  }
+
+
+  // TESTING
+
+
+  uint8_t data[6];
+
+  HAL_I2C_Mem_Read(&hi2c1,
+                  0x68 << 1,
+                  0x70,
+                  I2C_MEMADD_SIZE_8BIT,
+                  data,
+                  6,
+                  HAL_MAX_DELAY);
+
+  for (int i = 0; i < 6; i++) {
+      snprintf(msg, sizeof(msg),
+              "Reg 0x%02X: 0x%02X\r\n",
+              0x70 + i, data[i]);
+
+      HAL_UART_Transmit(&huart2,
+                        (uint8_t *)msg,
+                        strlen(msg),
+                        HAL_MAX_DELAY);
+  }
+
+  uint8_t wake = 0x00;
+
+  HAL_I2C_Mem_Write(&hi2c1,
+                    0x68 << 1,
+                    0x6B,
+                    I2C_MEMADD_SIZE_8BIT,
+                    &wake,
+                    1,
+                    HAL_MAX_DELAY);
+
+  uint8_t green[14];
+
+  HAL_I2C_Mem_Read(&hi2c1,
+                  0x68 << 1,
+                  0x3B,
+                  I2C_MEMADD_SIZE_8BIT,
+                  green,
+                  14,
+                  HAL_MAX_DELAY);
+
+  char redmsg[50];
+
+  for (int i = 0; i < 14; i++) {
+      snprintf(redmsg, sizeof(redmsg),
+              "Data %d: 0x%02X\r\n",
+              i,
+              green[i]);
+
+      HAL_UART_Transmit(&huart2,
+                        (uint8_t *)redmsg,
+                        strlen(redmsg),
+                        HAL_MAX_DELAY);
+  }
+
+
+  int16_t accel_x = (int16_t)((green[0] << 8) | green[1]);
+  int16_t accel_y = (int16_t)((green[2] << 8) | green[3]);
+  int16_t accel_z = (int16_t)((green[4] << 8) | green[5]);
+
+  int16_t temp_raw = (int16_t)((green[6] << 8) | green[7]);
+
+  int16_t gyro_x = (int16_t)((green[8] << 8) | green[9]);
+  int16_t gyro_y = (int16_t)((green[10] << 8) | green[11]);
+  int16_t gyro_z = (int16_t)((green[12] << 8) | green[13]);
+
+  float ax = accel_x / 16384.0f;
+  float ay = accel_y / 16384.0f;
+  float az = accel_z / 16384.0f;
+
+  float gx = gyro_x / 131.0f;
+  float gy = gyro_y / 131.0f;
+  float gz = gyro_z / 131.0f;
+
+  float sensor_temp = (temp_raw / 340.0f) + 36.53f;
+
+  snprintf(msg, sizeof(msg),
+          "Accel: X=%.2f g Y=%.2f g Z=%.2f g\r\n",
+          ax, ay, az);
+
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)msg,
+                    strlen(msg),
+                    HAL_MAX_DELAY);
+
+  snprintf(msg, sizeof(msg),
+          "Gyro: X=%.2f Y=%.2f Z=%.2f deg/s\r\n",
+          gx, gy, gz);
+
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)msg,
+                    strlen(msg),
+                    HAL_MAX_DELAY);
+
+  snprintf(msg, sizeof(msg),
+          "MPU6050 Temp: %.2f C\r\n",
+          sensor_temp);
+
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)msg,
+                    strlen(msg),
+                    HAL_MAX_DELAY);
+
+
+
+
+
+  // END OF TEST
+
+
+
+
+
+  // GOOD STUFF
+  const char end_msg[] = "I2C scan complete!\r\n";
+  HAL_UART_Transmit(&huart2, (uint8_t *)end_msg,
+                    strlen(end_msg), HAL_MAX_DELAY);
+
   if (BME280_Init(&hi2c1, &calib) == HAL_OK) {
     char init_msg[] = "BME280 initialized!\r\n";
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
