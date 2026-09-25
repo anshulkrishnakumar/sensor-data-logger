@@ -30,7 +30,8 @@
 // ttyACM0
 #include <stdio.h>
 #include <string.h>
-#include <bme280.h>
+#include "bme280.h"
+#include "mpu6050.h"
 
 /* USER CODE END Includes */
 
@@ -103,151 +104,21 @@ int main(void)
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
   BME280_Calibration calib;
-
-
-  char msg[50];
-
-  const char start_msg[] = "I2C scan starting...\r\n";
-  HAL_UART_Transmit(&huart2, (uint8_t *)start_msg,
-                    strlen(start_msg), HAL_MAX_DELAY);
-
-  for (uint8_t addr = 1; addr < 128; addr++) {
-      if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 2, 10) == HAL_OK) {
-          snprintf(msg, sizeof(msg),
-                  "Address: 0x%02X\r\n", addr);
-
-          HAL_UART_Transmit(&huart2, (uint8_t *)msg,
-                            strlen(msg), HAL_MAX_DELAY);
-      }
-  }
-
-
-  // TESTING
-
-
-  uint8_t data[6];
-
-  HAL_I2C_Mem_Read(&hi2c1,
-                  0x68 << 1,
-                  0x70,
-                  I2C_MEMADD_SIZE_8BIT,
-                  data,
-                  6,
-                  HAL_MAX_DELAY);
-
-  for (int i = 0; i < 6; i++) {
-      snprintf(msg, sizeof(msg),
-              "Reg 0x%02X: 0x%02X\r\n",
-              0x70 + i, data[i]);
-
-      HAL_UART_Transmit(&huart2,
-                        (uint8_t *)msg,
-                        strlen(msg),
-                        HAL_MAX_DELAY);
-  }
-
-  uint8_t wake = 0x00;
-
-  HAL_I2C_Mem_Write(&hi2c1,
-                    0x68 << 1,
-                    0x6B,
-                    I2C_MEMADD_SIZE_8BIT,
-                    &wake,
-                    1,
-                    HAL_MAX_DELAY);
-
-  uint8_t green[14];
-
-  HAL_I2C_Mem_Read(&hi2c1,
-                  0x68 << 1,
-                  0x3B,
-                  I2C_MEMADD_SIZE_8BIT,
-                  green,
-                  14,
-                  HAL_MAX_DELAY);
-
-  char redmsg[50];
-
-  for (int i = 0; i < 14; i++) {
-      snprintf(redmsg, sizeof(redmsg),
-              "Data %d: 0x%02X\r\n",
-              i,
-              green[i]);
-
-      HAL_UART_Transmit(&huart2,
-                        (uint8_t *)redmsg,
-                        strlen(redmsg),
-                        HAL_MAX_DELAY);
-  }
-
-
-  int16_t accel_x = (int16_t)((green[0] << 8) | green[1]);
-  int16_t accel_y = (int16_t)((green[2] << 8) | green[3]);
-  int16_t accel_z = (int16_t)((green[4] << 8) | green[5]);
-
-  int16_t temp_raw = (int16_t)((green[6] << 8) | green[7]);
-
-  int16_t gyro_x = (int16_t)((green[8] << 8) | green[9]);
-  int16_t gyro_y = (int16_t)((green[10] << 8) | green[11]);
-  int16_t gyro_z = (int16_t)((green[12] << 8) | green[13]);
-
-  float ax = accel_x / 16384.0f;
-  float ay = accel_y / 16384.0f;
-  float az = accel_z / 16384.0f;
-
-  float gx = gyro_x / 131.0f;
-  float gy = gyro_y / 131.0f;
-  float gz = gyro_z / 131.0f;
-
-  float sensor_temp = (temp_raw / 340.0f) + 36.53f;
-
-  snprintf(msg, sizeof(msg),
-          "Accel: X=%.2f g Y=%.2f g Z=%.2f g\r\n",
-          ax, ay, az);
-
-  HAL_UART_Transmit(&huart2,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
-
-  snprintf(msg, sizeof(msg),
-          "Gyro: X=%.2f Y=%.2f Z=%.2f deg/s\r\n",
-          gx, gy, gz);
-
-  HAL_UART_Transmit(&huart2,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
-
-  snprintf(msg, sizeof(msg),
-          "MPU6050 Temp: %.2f C\r\n",
-          sensor_temp);
-
-  HAL_UART_Transmit(&huart2,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
-
-
-
-
-
-  // END OF TEST
-
-
-
-
-
-  // GOOD STUFF
-  const char end_msg[] = "I2C scan complete!\r\n";
-  HAL_UART_Transmit(&huart2, (uint8_t *)end_msg,
-                    strlen(end_msg), HAL_MAX_DELAY);
+  MPU6050_Data mpu_data;
 
   if (BME280_Init(&hi2c1, &calib) == HAL_OK) {
     char init_msg[] = "BME280 initialized!\r\n";
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   } else {
     char init_msg[] = "BME280 initialization failed!\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
+  }
+
+  if (MPU6050_Init(&hi2c1) == HAL_OK) {
+    char init_msg[] = "MPU6050 initialized!\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
+  } else {
+    char init_msg[] = "MPU6050 initialization failed!\r\n";
     HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   }
 
@@ -266,6 +137,29 @@ int main(void)
   char hum_msg[50];
   snprintf(hum_msg, sizeof(hum_msg), "Humidity: %.2f %%\r\n", humidity);
   HAL_UART_Transmit(&huart2, (uint8_t *)hum_msg, strlen(hum_msg), HAL_MAX_DELAY);
+
+  if (MPU6050_Read(&hi2c1, &mpu_data) == HAL_OK) {
+      char msg[100];
+
+      snprintf(msg, sizeof(msg),
+              "Accel: X=%.2f g Y=%.2f g Z=%.2f g\r\n",
+              mpu_data.accel_x,
+              mpu_data.accel_y,
+              mpu_data.accel_z);
+
+      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+
+      snprintf(msg, sizeof(msg),
+              "Gyro: X=%.2f Y=%.2f Z=%.2f deg/s\r\n\n",
+              mpu_data.gyro_x,
+              mpu_data.gyro_y,
+              mpu_data.gyro_z);
+
+      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+  } else {
+      char msg[] = "MPU6050 read failed!\r\n";
+      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+  }
 
   /* USER CODE END 2 */
 
