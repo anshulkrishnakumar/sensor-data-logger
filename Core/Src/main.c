@@ -114,10 +114,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
-  MX_SPI2_Init();
   MX_TIM6_Init();
   MX_USART2_UART_Init();
   MX_FATFS_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   BME280_Calibration calib;
   MPU6050_Data mpu_data;
