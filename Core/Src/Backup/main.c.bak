@@ -30,6 +30,8 @@
 // ttyACM0
 #include <stdio.h>
 #include <string.h>
+#include "bme280.h"
+#include "mpu6050.h"
 
 /* USER CODE END Includes */
 
@@ -101,31 +103,63 @@ int main(void)
   MX_USART2_UART_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-  char msg[50];
+  BME280_Calibration calib;
+  MPU6050_Data mpu_data;
 
-  HAL_UART_Transmit(&huart2,
-                    (uint8_t *)"I2C scan starting...\r\n",
-                    22,
-                    HAL_MAX_DELAY);
-
-  for (uint8_t addr = 1; addr < 128; addr++)
-  {
-      if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 2, 10) == HAL_OK)
-      {
-          snprintf(msg, sizeof(msg),
-                  "I2C device found: 0x%02X\r\n", addr);
-
-          HAL_UART_Transmit(&huart2,
-                            (uint8_t *)msg,
-                            strlen(msg),
-                            HAL_MAX_DELAY);
-      }
+  if (BME280_Init(&hi2c1, &calib) == HAL_OK) {
+    char init_msg[] = "BME280 initialized!\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
+  } else {
+    char init_msg[] = "BME280 initialization failed!\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
   }
 
-  HAL_UART_Transmit(&huart2,
-                    (uint8_t *)"I2C scan complete\r\n",
-                    21,
-                    HAL_MAX_DELAY);
+  if (MPU6050_Init(&hi2c1) == HAL_OK) {
+    char init_msg[] = "MPU6050 initialized!\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
+  } else {
+    char init_msg[] = "MPU6050 initialization failed!\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)init_msg, strlen(init_msg), HAL_MAX_DELAY);
+  }
+
+  float temperature = BME280_ReadTemperature(&hi2c1, &calib);
+  float pressure = BME280_ReadPressure(&hi2c1, &calib);
+  float humidity = BME280_ReadHumidity(&hi2c1, &calib);
+
+  char temp_msg[50];
+  snprintf(temp_msg, sizeof(temp_msg), "Temperature: %.2f C\r\n", temperature);
+  HAL_UART_Transmit(&huart2, (uint8_t *)temp_msg, strlen(temp_msg), HAL_MAX_DELAY);
+
+  char press_msg[50];
+  snprintf(press_msg, sizeof(press_msg), "Pressure: %.2f Pa\r\n", pressure);
+  HAL_UART_Transmit(&huart2, (uint8_t *)press_msg, strlen(press_msg), HAL_MAX_DELAY);
+  
+  char hum_msg[50];
+  snprintf(hum_msg, sizeof(hum_msg), "Humidity: %.2f %%\r\n", humidity);
+  HAL_UART_Transmit(&huart2, (uint8_t *)hum_msg, strlen(hum_msg), HAL_MAX_DELAY);
+
+  if (MPU6050_Read(&hi2c1, &mpu_data) == HAL_OK) {
+      char msg[100];
+
+      snprintf(msg, sizeof(msg),
+              "Accel: X=%.2f g Y=%.2f g Z=%.2f g\r\n",
+              mpu_data.accel_x,
+              mpu_data.accel_y,
+              mpu_data.accel_z);
+
+      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+
+      snprintf(msg, sizeof(msg),
+              "Gyro: X=%.2f Y=%.2f Z=%.2f deg/s\r\n\n",
+              mpu_data.gyro_x,
+              mpu_data.gyro_y,
+              mpu_data.gyro_z);
+
+      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+  } else {
+      char msg[] = "MPU6050 read failed!\r\n";
+      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+  }
 
   /* USER CODE END 2 */
 
