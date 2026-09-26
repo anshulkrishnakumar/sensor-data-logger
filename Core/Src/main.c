@@ -54,6 +54,19 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+volatile uint8_t sensor_sample_flag = 0; // activated by TIM6
+
+typedef struct {
+  uint32_t timestamp_ms;
+
+  float temperature;
+  float pressure;
+  float humidity;
+
+  MPU6050_Data mpu;
+} SensorSample;
+
+SensorSample sample;
 
 /* USER CODE END PV */
 
@@ -161,6 +174,10 @@ int main(void)
       HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
   }
 
+  HAL_TIM_Base_Start_IT(&htim6);
+
+
+
   /* USER CODE END 2 */
 
   /* Initialize leds */
@@ -177,8 +194,26 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    BSP_LED_Toggle(LED2);
-    HAL_Delay(500);
+
+    if (sensor_sample_flag) {
+      sensor_sample_flag = 0;
+      
+      float temperature = BME280_ReadTemperature(&hi2c1, &calib);
+      float pressure = BME280_ReadPressure(&hi2c1, &calib);
+      float humidity = BME280_ReadHumidity(&hi2c1, &calib);
+      
+      MPU6050_Read(&hi2c1, &mpu_data);
+
+      sample.timestamp_ms = HAL_GetTick();
+      sample.temperature = temperature;
+      sample.pressure = pressure;
+      sample.humidity = humidity;
+      sample.mpu = mpu_data;
+
+
+      char msg[] = "Sample\r\n";
+      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+    }
   }
   /* USER CODE END 3 */
 }
@@ -231,6 +266,11 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+  if (htim->Instance == TIM6) {
+    sensor_sample_flag = 1;    
+  }
+}
 
 /* USER CODE END 4 */
 
