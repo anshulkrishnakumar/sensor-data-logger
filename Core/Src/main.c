@@ -42,6 +42,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SAMPLE_BUFFER_SIZE 10
 
 /* USER CODE END PD */
 
@@ -67,6 +68,8 @@ typedef struct {
 } SensorSample;
 
 SensorSample sample;
+SensorSample sample_buffer[SAMPLE_BUFFER_SIZE];
+uint8_t sample_count = 0;
 
 /* USER CODE END PV */
 
@@ -210,9 +213,14 @@ int main(void)
       sample.humidity = humidity;
       sample.mpu = mpu_data;
 
+      if (sample_count < SAMPLE_BUFFER_SIZE) {
+        sample_buffer[sample_count] = sample;
+        sample_count++;
+      }
 
-      char msg[] = "Sample\r\n";
-      HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+      if (sample_count == SAMPLE_BUFFER_SIZE) {
+        sample_count = 0;
+      }
     }
   }
   /* USER CODE END 3 */
