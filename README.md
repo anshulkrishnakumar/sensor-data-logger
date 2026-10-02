@@ -34,7 +34,7 @@ STM32 firmware project for collecting environmental and motion data from a BME28
 - **10-sample RAM buffer**
 - UART diagnostics at **115200 baud**
 - SPI and FATFS configuration for microSD storage
-- CMake/Ninja build and STM32CubeProgrammer flashing workflow
+- CMake/Ninja build and firmware flashing workflow
 
 ## Data Flow
 
