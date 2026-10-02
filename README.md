@@ -7,3 +7,4 @@ STM32-based sensor data logger written in C using STM32 HAL.
 - Uses a timer interrupt to sample sensors at **10 Hz** and buffers **10 samples** in RAM.
 - Uses UART for firmware diagnostics and sensor output.
 - Configured SPI1/SPI2 and FATFS for planned microSD data logging.
+<img width="1106" height="713" alt="image" src="https://github.com/user-attachments/assets/be9a54b0-09ae-499d-ba7f-376f468c0a08" />
