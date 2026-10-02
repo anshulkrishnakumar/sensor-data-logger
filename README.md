@@ -58,3 +58,8 @@ BME280   MPU6050
       │
       ▼
  microSD / FATFS
+```
+
+## In Progress
+
+Sensor acquisition, timer-driven sampling, UART diagnostics, and RAM buffering are implemented. MicroSD communication and data logging are still in development.
